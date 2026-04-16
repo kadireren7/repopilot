@@ -52,6 +52,38 @@ class RecommendationEngine {
                 priority: "medium",
             });
         }
+        if (!analysis.hasTests) {
+            recommendations.push({
+                title: "Add automated tests",
+                description: "Tests reduce regressions and document expected behavior.",
+                action: "Add a test runner and tests (e.g. Jest, Vitest, pytest, go test, cargo test).",
+                priority: "high",
+            });
+        }
+        if (!analysis.hasSecurityPolicy) {
+            recommendations.push({
+                title: "Add SECURITY.md",
+                description: "A security policy tells reporters how to disclose vulnerabilities responsibly.",
+                action: "Add SECURITY.md at the repo root with contact and disclosure guidelines.",
+                priority: "medium",
+            });
+        }
+        if (!analysis.hasContributing) {
+            recommendations.push({
+                title: "Add CONTRIBUTING.md",
+                description: "Contribution guidelines help new contributors ship quality changes.",
+                action: "Document branch strategy, coding standards, and PR process in CONTRIBUTING.md.",
+                priority: "low",
+            });
+        }
+        if (!analysis.hasChangelog) {
+            recommendations.push({
+                title: "Add CHANGELOG.md",
+                description: "A changelog communicates user-facing changes between releases.",
+                action: "Maintain CHANGELOG.md (or release notes) following Keep a Changelog style.",
+                priority: "low",
+            });
+        }
         return recommendations;
     }
     getDeploymentSuggestions(analysis) {
@@ -63,11 +95,21 @@ class RecommendationEngine {
                 steps: ["Connect your GitHub repository", "Configure build settings", "Deploy"],
             });
         }
-        if (analysis.language === "TypeScript/JavaScript" || analysis.language === "Python" || analysis.language === "Go") {
+        if (analysis.language === "TypeScript/JavaScript" ||
+            analysis.language === "Python" ||
+            analysis.language === "Go" ||
+            analysis.language === "Rust") {
             suggestions.push({
                 platform: "Railway / Fly.io",
                 reason: "Good fit for app and API workloads with simple deployments.",
                 steps: ["Install platform CLI", "Launch app", "Set environment variables"],
+            });
+        }
+        if (analysis.language === "Java") {
+            suggestions.push({
+                platform: "Kubernetes / Cloud JVM",
+                reason: "JVM services often ship as containers or fat JARs behind a platform load balancer.",
+                steps: ["Build with Maven/Gradle", "Containerize or package JAR", "Configure health checks"],
             });
         }
         if (analysis.hasDockerfile) {

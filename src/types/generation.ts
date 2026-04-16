@@ -10,7 +10,7 @@ export interface GenerationOptions {
   targetPath: string;
 }
 
-export type TechStack = "Next.js" | "Node.js" | "Python" | "Go" | "Unknown";
+export type TechStack = "Next.js" | "Node.js" | "Python" | "Go" | "Rust" | "Java" | "Unknown";
 
 export interface TemplateContext {
   projectName: string;

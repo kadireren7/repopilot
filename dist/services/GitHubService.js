@@ -11,16 +11,24 @@ class GitHubService {
         this.octokit = new octokit_1.Octokit({ auth: token });
     }
     parseRepoUrl(url) {
-        const parts = url.replace("https://github.com/", "").split("/");
+        let normalized = url.trim();
+        if (normalized.startsWith("git@github.com:")) {
+            normalized = `https://github.com/${normalized.replace("git@github.com:", "")}`;
+        }
+        const withoutScheme = normalized.replace(/^https?:\/\/github\.com\//i, "");
+        const parts = withoutScheme.split("/").filter(Boolean);
         if (parts.length < 2)
             throw new Error("Invalid GitHub repository URL.");
-        return { owner: parts[0], repo: parts[1].replace(".git", "") };
+        return { owner: parts[0], repo: parts[1].replace(/\.git$/i, "") };
+    }
+    async getDefaultBranch(owner, repo) {
+        const { data } = await this.octokit.rest.repos.get({ owner, repo });
+        return data.default_branch;
     }
     async createBranch(owner, repo, branchName) {
         try {
-            const { data: mainBranch } = await this.octokit.rest.repos
-                .getBranch({ owner, repo, branch: "main" })
-                .catch(() => this.octokit.rest.repos.getBranch({ owner, repo, branch: "master" }));
+            const base = await this.getDefaultBranch(owner, repo);
+            const { data: mainBranch } = await this.octokit.rest.repos.getBranch({ owner, repo, branch: base });
             await this.octokit.rest.git.createRef({ owner, repo, ref: `refs/heads/${branchName}`, sha: mainBranch.commit.sha });
             console.log(chalk_1.default.green(`[GITHUB] Created branch: ${branchName}`));
         }
@@ -57,7 +65,7 @@ class GitHubService {
             }
         }
     }
-    async createPullRequest(owner, repo, head, files) {
+    async createPullRequest(owner, repo, head, base, files) {
         const body = `
 ## RepoPilot Ship Readiness Fixes
 
@@ -71,7 +79,7 @@ ${files.map((f) => `- **${f.path}**: ${f.description}`).join("\n")}
             repo,
             title: "chore: improve ship readiness with RepoPilot",
             head,
-            base: "main",
+            base,
             body,
         });
         return pr.html_url;

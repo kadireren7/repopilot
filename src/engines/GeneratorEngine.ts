@@ -14,6 +14,8 @@ export class GeneratorEngine {
 
   private mapToTechStack(): TechStack {
     if (this.analysis.framework === "Next.js") return "Next.js";
+    if (this.analysis.language === "Rust") return "Rust";
+    if (this.analysis.language === "Java") return "Java";
     if (this.analysis.language === "TypeScript/JavaScript") return "Node.js";
     if (this.analysis.language === "Python") return "Python";
     if (this.analysis.language === "Go") return "Go";

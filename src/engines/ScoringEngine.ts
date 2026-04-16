@@ -1,16 +1,31 @@
+import { CategoryWeights } from "../utils/ConfigManager";
 import { RepoAnalysis, ScoreCategory, ShipReadinessScore } from "../types";
 
+const DEFAULT_WEIGHTS: Required<CategoryWeights> = {
+  build: 1,
+  deployment: 1,
+  environment: 1,
+  documentation: 1,
+  openSource: 1,
+};
+
 export class ScoringEngine {
-  calculate(analysis: RepoAnalysis): ShipReadinessScore {
+  calculate(analysis: RepoAnalysis, categoryWeights?: CategoryWeights): ShipReadinessScore {
+    const w = { ...DEFAULT_WEIGHTS, ...categoryWeights };
     const build = this.calculateBuildScore(analysis);
     const deployment = this.calculateDeploymentScore(analysis);
     const environment = this.calculateEnvironmentScore(analysis);
     const documentation = this.calculateDocumentationScore(analysis);
     const openSource = this.calculateOpenSourceScore(analysis);
 
-    const totalScore = Math.round(
-      (build.score + deployment.score + environment.score + documentation.score + openSource.score) / 5
-    );
+    const weightedSum =
+      build.score * w.build +
+      deployment.score * w.deployment +
+      environment.score * w.environment +
+      documentation.score * w.documentation +
+      openSource.score * w.openSource;
+    const weightTotal = w.build + w.deployment + w.environment + w.documentation + w.openSource;
+    const totalScore = Math.round(weightedSum / weightTotal);
 
     return {
       totalScore,
@@ -22,10 +37,12 @@ export class ScoringEngine {
   private calculateBuildScore(analysis: RepoAnalysis): ScoreCategory {
     let score = 0;
     const issues: string[] = [];
-    if (analysis.packageManager !== "Unknown") score += 50;
-    else issues.push("No standard package manager detected (npm, yarn, pnpm, pip, go mod).");
-    if (analysis.language !== "Unknown") score += 50;
+    if (analysis.packageManager !== "Unknown") score += 35;
+    else issues.push("No standard package manager detected (npm, yarn, pnpm, pip, cargo, go mod, etc.).");
+    if (analysis.language !== "Unknown") score += 35;
     else issues.push("Could not determine the primary programming language.");
+    if (analysis.hasTests) score += 30;
+    else issues.push("No automated tests detected (add unit/integration tests or a test config).");
     return { score, maxScore: 100, issues };
   }
 
@@ -50,16 +67,22 @@ export class ScoringEngine {
   private calculateDocumentationScore(analysis: RepoAnalysis): ScoreCategory {
     let score = 0;
     const issues: string[] = [];
-    if (analysis.hasReadme) score += 100;
+    if (analysis.hasReadme) score += 60;
     else issues.push("Missing README.md file.");
+    if (analysis.hasContributing) score += 20;
+    else issues.push("Missing CONTRIBUTING.md for contributor onboarding.");
+    if (analysis.hasChangelog) score += 20;
+    else issues.push("Missing CHANGELOG.md (or HISTORY.md) for release notes.");
     return { score, maxScore: 100, issues };
   }
 
   private calculateOpenSourceScore(analysis: RepoAnalysis): ScoreCategory {
     let score = 0;
     const issues: string[] = [];
-    if (analysis.hasLicense) score += 100;
+    if (analysis.hasLicense) score += 75;
     else issues.push("Missing LICENSE file.");
+    if (analysis.hasSecurityPolicy) score += 25;
+    else issues.push("Missing SECURITY.md for vulnerability reporting.");
     return { score, maxScore: 100, issues };
   }
 

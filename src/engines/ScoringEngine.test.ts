@@ -20,6 +20,10 @@ describe("ScoringEngine", () => {
       hasCI: true,
       hasReadme: true,
       hasLicense: true,
+      hasTests: true,
+      hasSecurityPolicy: true,
+      hasContributing: true,
+      hasChangelog: true,
     };
 
     const score = engine.calculate(perfectAnalysis);
@@ -38,9 +42,42 @@ describe("ScoringEngine", () => {
       hasCI: false,
       hasReadme: false,
       hasLicense: false,
+      hasTests: false,
+      hasSecurityPolicy: false,
+      hasContributing: false,
+      hasChangelog: false,
     };
 
     const score = engine.calculate(emptyAnalysis);
     expect(score.totalScore).toBeLessThan(30);
+  });
+
+  it("applies category weights to the total score", () => {
+    const base: RepoAnalysis = {
+      language: "TypeScript",
+      framework: "React",
+      packageManager: "npm",
+      files: [],
+      hasDockerfile: false,
+      hasDockerIgnore: true,
+      hasEnvExample: true,
+      hasCI: false,
+      hasReadme: true,
+      hasLicense: true,
+      hasTests: true,
+      hasSecurityPolicy: true,
+      hasContributing: true,
+      hasChangelog: true,
+    };
+    const uniform = engine.calculate(base);
+    const ignoreDeployment = engine.calculate(base, {
+      deployment: 0,
+      build: 1,
+      environment: 1,
+      documentation: 1,
+      openSource: 1,
+    });
+    expect(uniform.totalScore).toBe(80);
+    expect(ignoreDeployment.totalScore).toBe(100);
   });
 });

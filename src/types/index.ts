@@ -9,6 +9,10 @@ export interface RepoAnalysis {
   hasCI: boolean;
   hasReadme: boolean;
   hasLicense: boolean;
+  hasTests: boolean;
+  hasSecurityPolicy: boolean;
+  hasContributing: boolean;
+  hasChangelog: boolean;
 }
 
 export interface ScoreCategory {

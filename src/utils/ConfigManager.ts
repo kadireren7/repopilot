@@ -1,9 +1,18 @@
 import fs from "fs-extra";
 import path from "path";
 
+export interface CategoryWeights {
+  build?: number;
+  deployment?: number;
+  environment?: number;
+  documentation?: number;
+  openSource?: number;
+}
+
 export interface RepoPilotConfig {
   exclude?: string[];
   threshold?: number;
+  weights?: CategoryWeights;
   github?: {
     defaultBranch?: string;
     prTitle?: string;

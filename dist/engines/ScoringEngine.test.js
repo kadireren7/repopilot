@@ -18,6 +18,10 @@ describe("ScoringEngine", () => {
             hasCI: true,
             hasReadme: true,
             hasLicense: true,
+            hasTests: true,
+            hasSecurityPolicy: true,
+            hasContributing: true,
+            hasChangelog: true,
         };
         const score = engine.calculate(perfectAnalysis);
         expect(score.totalScore).toBe(100);
@@ -34,6 +38,10 @@ describe("ScoringEngine", () => {
             hasCI: false,
             hasReadme: false,
             hasLicense: false,
+            hasTests: false,
+            hasSecurityPolicy: false,
+            hasContributing: false,
+            hasChangelog: false,
         };
         const score = engine.calculate(emptyAnalysis);
         expect(score.totalScore).toBeLessThan(30);
